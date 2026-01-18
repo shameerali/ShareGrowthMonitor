@@ -1,5 +1,6 @@
 package com.irothink.sharegrowthmonitor.ui.transactions.add
 
+import android.widget.Toast
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.irothink.sharegrowthmonitor.data.local.entity.CompanyInfoEntity
@@ -59,6 +60,7 @@ class AddTransactionViewModel @Inject constructor(
         val state = _uiState.value
         if (state.selectedCompany == null || state.quantity.isBlank() || state.price.isBlank()) {
             // Show error (simplified for now)
+//            Toast.makeText(getco)
             return
         }
 
@@ -78,7 +80,9 @@ class AddTransactionViewModel @Inject constructor(
                         date = dateString,
                         quantity = quantityVal,
                         pricePerShare = priceVal,
-                        totalAmount = totalVal,
+                        taxAmount = 0.0,
+                        grossAmount = totalVal,
+                        netAmount = totalVal,
                         type = state.type,
                         brokerageFee = 0.0,
                         notes = "",

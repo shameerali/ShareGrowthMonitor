@@ -12,11 +12,14 @@ data class TransactionEntity(
     val symbol: String,
     val quantity: Double,
     val pricePerShare: Double,
-    val totalAmount: Double,
+    val taxAmount: Double,
+    val grossAmount: Double,
+    val netAmount: Double,
     val date: String, // YYYY-MM-DD
     val brokerageFee: Double,
     val notes: String,
-    val createdAt: String // ISO 8601
+    val createdAt: String, // ISO 8601
+
 )
 
 enum class TransactionType {

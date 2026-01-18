@@ -34,7 +34,7 @@ class GetPortfolioSummaryUseCase @Inject constructor(
                         current.investedAmount += newCost
                         
                         // Deduct from available funds
-                        availableFunds -= transaction.totalAmount
+                        availableFunds -= transaction.netAmount
                     }
                     TransactionType.SELL -> {
                          val current = holdingsMap.getOrPut(transaction.symbol) {
@@ -50,13 +50,13 @@ class GetPortfolioSummaryUseCase @Inject constructor(
                         if (current.quantity < 0) current.quantity = 0.0 // data issue protection
                         
                         // Add to available funds
-                        availableFunds += transaction.totalAmount
+                        availableFunds += transaction.netAmount
                     }
                     TransactionType.DEPOSIT -> {
-                        availableFunds += transaction.totalAmount
+                        availableFunds += transaction.netAmount
                     }
                     TransactionType.WITHDRAW -> {
-                        availableFunds -= transaction.totalAmount
+                        availableFunds -= transaction.netAmount
                     }
                 }
                 

@@ -12,7 +12,7 @@ import com.irothink.sharegrowthmonitor.data.local.entity.CompanyInfoEntity
 
 @Database(
     entities = [TransactionEntity::class, CompanyInfoEntity::class, BudgetEntity::class],
-    version = 4,
+    version = 5,
     exportSchema = false
 )
 @TypeConverters(Converters::class)

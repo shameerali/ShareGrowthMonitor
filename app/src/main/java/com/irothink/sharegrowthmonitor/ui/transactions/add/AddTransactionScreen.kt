@@ -1,6 +1,7 @@
 package com.irothink.sharegrowthmonitor.ui.transactions.add
 
 import android.app.DatePickerDialog
+import android.util.Log
 import android.widget.DatePicker
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -10,6 +11,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
@@ -19,6 +21,8 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -54,23 +58,29 @@ fun AddTransactionScreen(
     val state by viewModel.uiState.collectAsState()
     val companies by viewModel.companies.collectAsState()
     val context = LocalContext.current
+
     var expanded by remember { mutableStateOf(false) }
 
+    // Navigation event
     LaunchedEffect(Unit) {
         viewModel.navigationEvent.collect {
             onNavigateUp()
         }
     }
 
-    val calendar = Calendar.getInstance()
-    calendar.timeInMillis = state.date
+    // Date picker
+    val calendar = Calendar.getInstance().apply {
+        timeInMillis = state.date
+    }
 
     val datePickerDialog = DatePickerDialog(
         context,
         { _: DatePicker, year: Int, month: Int, dayOfMonth: Int ->
             val newCalendar = Calendar.getInstance()
             newCalendar.set(year, month, dayOfMonth)
-            viewModel.onEvent(AddTransactionEvent.DateChanged(newCalendar.timeInMillis))
+            viewModel.onEvent(
+                AddTransactionEvent.DateChanged(newCalendar.timeInMillis)
+            )
         },
         calendar.get(Calendar.YEAR),
         calendar.get(Calendar.MONTH),
@@ -89,6 +99,7 @@ fun AddTransactionScreen(
             )
         }
     ) { padding ->
+
         Column(
             modifier = Modifier
                 .padding(padding)
@@ -96,108 +107,155 @@ fun AddTransactionScreen(
                 .fillMaxWidth(),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // Transaction Type (Buy/Sell)
+
+            /* ---------------- Transaction Type ---------------- */
+
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text("Type:", modifier = Modifier.padding(end = 16.dp))
+
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     RadioButton(
                         selected = state.type == TransactionType.BUY,
-                        onClick = { viewModel.onEvent(AddTransactionEvent.TypeChanged(TransactionType.BUY)) }
+                        onClick = {
+                            viewModel.onEvent(
+                                AddTransactionEvent.TypeChanged(TransactionType.BUY)
+                            )
+                        }
                     )
-                    Text("Buy", modifier = Modifier.clickable { viewModel.onEvent(AddTransactionEvent.TypeChanged(TransactionType.BUY)) })
+                    Text(
+                        "Buy",
+                        modifier = Modifier.clickable {
+                            viewModel.onEvent(
+                                AddTransactionEvent.TypeChanged(TransactionType.BUY)
+                            )
+                        }
+                    )
                 }
-                Spacer(modifier = Modifier.padding(8.dp))
+
+                Spacer(modifier = Modifier.width(16.dp))
+
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     RadioButton(
                         selected = state.type == TransactionType.SELL,
-                        onClick = { viewModel.onEvent(AddTransactionEvent.TypeChanged(TransactionType.SELL)) }
-                    )
-                    Text("Sell", modifier = Modifier.clickable { viewModel.onEvent(AddTransactionEvent.TypeChanged(TransactionType.SELL)) })
-                }
-            }
-
-            // Company Dropdown
-            OutlinedTextField(
-                value = state.selectedCompany?.let { "${it.name} (${it.symbol})" } ?: "",
-                onValueChange = {},
-                label = { Text("Select Company") },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable { expanded = true },
-                readOnly = true,
-                trailingIcon = {
-                    Icon(Icons.Default.ArrowDropDown, contentDescription = "Dropdown")
-                }
-            )
-
-            DropdownMenu(
-                expanded = expanded,
-                onDismissRequest = { expanded = false }
-            ) {
-                companies.forEach { company ->
-                    DropdownMenuItem(
-                        text = { Text("${company.name} (${company.symbol})") },
                         onClick = {
-                            viewModel.onEvent(AddTransactionEvent.CompanySelected(company))
-                            expanded = false
+                            viewModel.onEvent(
+                                AddTransactionEvent.TypeChanged(TransactionType.SELL)
+                            )
+                        }
+                    )
+                    Text(
+                        "Sell",
+                        modifier = Modifier.clickable {
+                            viewModel.onEvent(
+                                AddTransactionEvent.TypeChanged(TransactionType.SELL)
+                            )
                         }
                     )
                 }
             }
 
-            // Company Name Display (Read-only)
-            OutlinedTextField(
-                value = state.companyName,
-                onValueChange = {},
-                label = { Text("Company Name") },
-                modifier = Modifier.fillMaxWidth(),
-                readOnly = true,
-                enabled = false
-            )
+            /* ---------------- Company Dropdown ---------------- */
 
-            // Stock Symbol Display (Read-only)
-            OutlinedTextField(
-                value = state.symbol,
-                onValueChange = {},
-                label = { Text("Stock Symbol") },
-                modifier = Modifier.fillMaxWidth(),
-                readOnly = true,
-                enabled = false
-            )
+            ExposedDropdownMenuBox(
+                expanded = expanded,
+                onExpandedChange = { expanded = !expanded }
+            ) {
+                OutlinedTextField(
+                    value = state.selectedCompany?.let {
+                        "${it.name} (${it.symbol})"
+                    } ?: "",
+                    onValueChange = {},
+                    readOnly = true,
+                    label = { Text("Company") },
+                    trailingIcon = {
+                        ExposedDropdownMenuDefaults.TrailingIcon(expanded)
+                    },
+                    modifier = Modifier
+                        .menuAnchor()
+                        .fillMaxWidth()
+                )
+
+                ExposedDropdownMenu(
+                    expanded = expanded,
+                    onDismissRequest = { expanded = false }
+                ) {
+                    companies.forEach { company ->
+                        DropdownMenuItem(
+                            text = {
+                                Text("${company.name} (${company.symbol})")
+                            },
+                            onClick = {
+                                viewModel.onEvent(
+                                    AddTransactionEvent.CompanySelected(company)
+                                )
+                                expanded = false
+                            }
+                        )
+                    }
+                }
+            }
+
+            /* ---------------- Quantity ---------------- */
 
             OutlinedTextField(
                 value = state.quantity,
-                onValueChange = { viewModel.onEvent(AddTransactionEvent.QuantityChanged(it)) },
+                onValueChange = {
+                    viewModel.onEvent(
+                        AddTransactionEvent.QuantityChanged(it)
+                    )
+                },
                 label = { Text("Quantity") },
                 modifier = Modifier.fillMaxWidth(),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Number
+                ),
                 singleLine = true
             )
+
+            /* ---------------- Price ---------------- */
 
             OutlinedTextField(
                 value = state.price,
-                onValueChange = { viewModel.onEvent(AddTransactionEvent.PriceChanged(it)) },
+                onValueChange = {
+                    viewModel.onEvent(
+                        AddTransactionEvent.PriceChanged(it)
+                    )
+                },
                 label = { Text("Price per Share") },
                 modifier = Modifier.fillMaxWidth(),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Decimal
+                ),
                 singleLine = true
             )
 
+            /* ---------------- Date ---------------- */
+
             OutlinedTextField(
-                value = SimpleDateFormat("MMM dd, yyyy", Locale.getDefault()).format(state.date),
+                value = SimpleDateFormat(
+                    "MMM dd, yyyy",
+                    Locale.getDefault()
+                ).format(state.date),
                 onValueChange = {},
+                readOnly = true,
                 label = { Text("Date") },
                 modifier = Modifier
                     .fillMaxWidth()
                     .clickable { datePickerDialog.show() },
-                readOnly = true,
                 trailingIcon = {
-                    Icon(Icons.Default.DateRange, contentDescription = "Select Date")
+                    Icon(
+                        Icons.Default.DateRange,
+                        contentDescription = "Select Date"
+                    )
                 }
             )
 
+            /* ---------------- Save ---------------- */
+
             Button(
-                onClick = { viewModel.onEvent(AddTransactionEvent.SaveClicked) },
+                onClick = {
+                    viewModel.onEvent(AddTransactionEvent.SaveClicked)
+                },
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text("Save Transaction")

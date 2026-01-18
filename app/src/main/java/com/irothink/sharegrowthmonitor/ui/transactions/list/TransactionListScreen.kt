@@ -110,7 +110,7 @@ fun TransactionItem(transaction: Transaction) {
                     style = MaterialTheme.typography.bodyMedium
                 )
                 Text(
-                    text = "$${String.format("%.2f", transaction.totalAmount)}",
+                    text = "$${String.format("%.2f", transaction.netAmount)}",
                     style = MaterialTheme.typography.bodySmall,
                     fontWeight = FontWeight.Bold
                 )
