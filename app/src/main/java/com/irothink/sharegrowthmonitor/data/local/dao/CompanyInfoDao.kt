@@ -22,4 +22,13 @@ interface CompanyInfoDao {
 
     @Delete
     suspend fun deleteCompany(company: CompanyInfoEntity)
+
+    @Query("SELECT * FROM companies")
+    suspend fun getAllCompaniesSync(): List<CompanyInfoEntity>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertAll(companies: List<CompanyInfoEntity>)
+
+    @Query("DELETE FROM companies")
+    suspend fun deleteAll()
 }

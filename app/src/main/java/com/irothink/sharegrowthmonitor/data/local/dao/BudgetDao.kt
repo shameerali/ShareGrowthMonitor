@@ -17,4 +17,13 @@ interface BudgetDao {
 
     @Query("SELECT SUM(CASE WHEN type = 'CREDIT' THEN amount ELSE -amount END) FROM user_budget")
     fun getTotalBalance(): Flow<Double?>
+
+    @Query("SELECT * FROM user_budget")
+    suspend fun getAllBudgetsSync(): List<BudgetEntity>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertAll(budgets: List<BudgetEntity>)
+
+    @Query("DELETE FROM user_budget")
+    suspend fun deleteAll()
 }
