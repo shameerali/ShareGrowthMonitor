@@ -52,6 +52,9 @@ class AddTransactionViewModel @Inject constructor(
             is AddTransactionEvent.PriceChanged -> _uiState.value = _uiState.value.copy(price = event.price)
             is AddTransactionEvent.TypeChanged -> _uiState.value = _uiState.value.copy(type = event.type)
             is AddTransactionEvent.DateChanged -> _uiState.value = _uiState.value.copy(date = event.date)
+            is AddTransactionEvent.BrokerageFeeChanged -> _uiState.value = _uiState.value.copy(brokerageFee = event.brokerageFee)
+            is AddTransactionEvent.TaxAmountChanged -> _uiState.value = _uiState.value.copy(taxAmount = event.taxAmount)
+            is AddTransactionEvent.NotesChanged -> _uiState.value = _uiState.value.copy(notes = event.notes)
             AddTransactionEvent.SaveClicked -> saveTransaction()
         }
     }
@@ -68,7 +71,12 @@ class AddTransactionViewModel @Inject constructor(
             try {
                 val quantityVal = state.quantity.toDouble()
                 val priceVal = state.price.toDouble()
-                val totalVal = quantityVal * priceVal
+                val brokerageFeeVal = state.brokerageFee.toDoubleOrNull() ?: 0.0
+                val taxAmountVal = state.taxAmount.toDoubleOrNull() ?: 0.0
+                
+                val grossAmount = quantityVal * priceVal
+                val netAmount = grossAmount + brokerageFeeVal + taxAmountVal
+                
                 val dateString = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault()).format(Date(state.date))
                 
                 addTransactionUseCase(
@@ -80,12 +88,12 @@ class AddTransactionViewModel @Inject constructor(
                         date = dateString,
                         quantity = quantityVal,
                         pricePerShare = priceVal,
-                        taxAmount = 0.0,
-                        grossAmount = totalVal,
-                        netAmount = totalVal,
+                        taxAmount = taxAmountVal,
+                        grossAmount = grossAmount,
+                        netAmount = netAmount,
                         type = state.type,
-                        brokerageFee = 0.0,
-                        notes = "",
+                        brokerageFee = brokerageFeeVal,
+                        notes = state.notes,
                         createdAt = System.currentTimeMillis().toString()
                     )
                 )
@@ -104,7 +112,10 @@ data class AddTransactionUiState(
     val quantity: String = "",
     val price: String = "",
     val date: Long = System.currentTimeMillis(),
-    val type: TransactionType = TransactionType.BUY
+    val type: TransactionType = TransactionType.BUY,
+    val brokerageFee: String = "",
+    val taxAmount: String = "",
+    val notes: String = ""
 )
 
 sealed class AddTransactionEvent {
@@ -113,5 +124,8 @@ sealed class AddTransactionEvent {
     data class PriceChanged(val price: String) : AddTransactionEvent()
     data class TypeChanged(val type: TransactionType) : AddTransactionEvent()
     data class DateChanged(val date: Long) : AddTransactionEvent()
+    data class BrokerageFeeChanged(val brokerageFee: String) : AddTransactionEvent()
+    data class TaxAmountChanged(val taxAmount: String) : AddTransactionEvent()
+    data class NotesChanged(val notes: String) : AddTransactionEvent()
     object SaveClicked : AddTransactionEvent()
 }

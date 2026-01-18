@@ -1,8 +1,6 @@
 package com.irothink.sharegrowthmonitor.ui.transactions.add
 
-import android.app.DatePickerDialog
 import android.util.Log
-import android.widget.DatePicker
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -12,12 +10,16 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material3.Button
+import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -30,7 +32,9 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -55,11 +59,13 @@ fun AddTransactionScreen(
     onNavigateUp: () -> Unit,
     viewModel: AddTransactionViewModel = hiltViewModel()
 ) {
+    
     val state by viewModel.uiState.collectAsState()
     val companies by viewModel.companies.collectAsState()
     val context = LocalContext.current
 
     var expanded by remember { mutableStateOf(false) }
+    var showDatePicker by remember { mutableStateOf(false) }
 
     // Navigation event
     LaunchedEffect(Unit) {
@@ -68,24 +74,36 @@ fun AddTransactionScreen(
         }
     }
 
-    // Date picker
-    val calendar = Calendar.getInstance().apply {
-        timeInMillis = state.date
-    }
-
-    val datePickerDialog = DatePickerDialog(
-        context,
-        { _: DatePicker, year: Int, month: Int, dayOfMonth: Int ->
-            val newCalendar = Calendar.getInstance()
-            newCalendar.set(year, month, dayOfMonth)
-            viewModel.onEvent(
-                AddTransactionEvent.DateChanged(newCalendar.timeInMillis)
-            )
-        },
-        calendar.get(Calendar.YEAR),
-        calendar.get(Calendar.MONTH),
-        calendar.get(Calendar.DAY_OF_MONTH)
+    // Material3 DatePicker State
+    val datePickerState = rememberDatePickerState(
+        initialSelectedDateMillis = state.date
     )
+
+    // Show Material3 DatePicker Dialog
+    if (showDatePicker) {
+        DatePickerDialog(
+            onDismissRequest = { showDatePicker = false },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        datePickerState.selectedDateMillis?.let { millis ->
+                            viewModel.onEvent(AddTransactionEvent.DateChanged(millis))
+                        }
+                        showDatePicker = false
+                    }
+                ) {
+                    Text("OK")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDatePicker = false }) {
+                    Text("Cancel")
+                }
+            }
+        ) {
+            DatePicker(state = datePickerState)
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -104,7 +122,8 @@ fun AddTransactionScreen(
             modifier = Modifier
                 .padding(padding)
                 .padding(16.dp)
-                .fillMaxWidth(),
+                .fillMaxWidth()
+                .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
 
@@ -229,6 +248,40 @@ fun AddTransactionScreen(
                 singleLine = true
             )
 
+            /* ---------------- Brokerage Fee ---------------- */
+
+            OutlinedTextField(
+                value = state.brokerageFee,
+                onValueChange = {
+                    viewModel.onEvent(
+                        AddTransactionEvent.BrokerageFeeChanged(it)
+                    )
+                },
+                label = { Text("Brokerage Fee") },
+                modifier = Modifier.fillMaxWidth(),
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Decimal
+                ),
+                singleLine = true
+            )
+
+            /* ---------------- Taxes ---------------- */
+
+            OutlinedTextField(
+                value = state.taxAmount,
+                onValueChange = {
+                    viewModel.onEvent(
+                        AddTransactionEvent.TaxAmountChanged(it)
+                    )
+                },
+                label = { Text("Taxes") },
+                modifier = Modifier.fillMaxWidth(),
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Decimal
+                ),
+                singleLine = true
+            )
+
             /* ---------------- Date ---------------- */
 
             OutlinedTextField(
@@ -241,13 +294,30 @@ fun AddTransactionScreen(
                 label = { Text("Date") },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clickable { datePickerDialog.show() },
+                    .clickable { showDatePicker = true },
                 trailingIcon = {
-                    Icon(
-                        Icons.Default.DateRange,
-                        contentDescription = "Select Date"
-                    )
+                    IconButton(onClick = { showDatePicker = true }) {
+                        Icon(
+                            Icons.Default.DateRange,
+                            contentDescription = "Select Date"
+                        )
+                    }
                 }
+            )
+
+            /* ---------------- Notes ---------------- */
+
+            OutlinedTextField(
+                value = state.notes,
+                onValueChange = {
+                    viewModel.onEvent(
+                        AddTransactionEvent.NotesChanged(it)
+                    )
+                },
+                label = { Text("Notes") },
+                modifier = Modifier.fillMaxWidth(),
+                minLines = 3,
+                maxLines = 5
             )
 
             /* ---------------- Save ---------------- */
