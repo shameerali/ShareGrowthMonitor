@@ -57,9 +57,7 @@ fun DashboardScreen(
     onNavigateToCompanies: () -> Unit,
     viewModel: DashboardViewModel = hiltViewModel()
 ) {
-    // 4. Ui updates for dashboard screen, provide good design for dashboard screen
-    // Update dashboard ui screen to show portfolio summary, holdings, add transaction button,
-    // add budget button, add company name button, add profile page button, create profile page
+
     val summary by viewModel.portfolioSummary.collectAsState()
 
     Scaffold(
@@ -202,12 +200,22 @@ fun PortfolioSummaryCard(summary: PortfolioSummary) {
                 Column(horizontalAlignment = Alignment.End) {
                     Text("Total Profit/Loss", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.8f))
                     val pnlPrefix = if (summary.totalProfitLoss >= 0) "+" else ""
-                    Text(
-                        text = "$pnlPrefix$${String.format("%.2f", summary.totalProfitLoss)}",
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.onPrimary, // Keep white on primary card
-                        fontWeight = FontWeight.SemiBold
-                    )
+                    val pnlPercentage = if (summary.totalInvested > 0) (summary.totalProfitLoss / summary.totalInvested) * 100 else 0.0
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            text = "$pnlPrefix$${String.format("%.2f", summary.totalProfitLoss)}",
+                            style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.onPrimary,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            text = "($pnlPrefix${String.format("%.2f", pnlPercentage)}%)",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.9f),
+                            fontWeight = FontWeight.Medium
+                        )
+                    }
                 }
             }
         }
@@ -259,20 +267,39 @@ fun HoldingItem(holding: Holding) {
                 Spacer(modifier = Modifier.width(12.dp))
                 Column {
                     Text(holding.stockSymbol, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-                    Text("${holding.quantity} shares", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(
+                        text = "${holding.quantity} shares • $${String.format("%.2f", holding.currentPrice)}",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 }
             }
             
             Column(horizontalAlignment = Alignment.End) {
                 Text("$${String.format("%.2f", holding.totalValue)}", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+                
+                val pnlPercentage = if (holding.averagePrice > 0 && holding.quantity > 0) {
+                    (holding.profitLoss / (holding.quantity * holding.averagePrice)) * 100
+                } else 0.0
+                
                 val pnlColor = if (holding.profitLoss >= 0) Color(0xFF4CAF50) else Color(0xFFE53935)
                 val pnlPrefix = if (holding.profitLoss >= 0) "+" else ""
-                Text(
-                    text = "$pnlPrefix${String.format("%.2f", holding.profitLoss)}",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = pnlColor,
-                    fontWeight = FontWeight.Bold
-                )
+                
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = "$pnlPrefix$${String.format("%.2f", holding.profitLoss)}",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = pnlColor,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text(
+                        text = "($pnlPrefix${String.format("%.2f", pnlPercentage)}%)",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = pnlColor,
+                        fontWeight = FontWeight.Medium
+                    )
+                }
             }
         }
     }

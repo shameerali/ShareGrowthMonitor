@@ -56,9 +56,6 @@ fun ShareGrowthNavGraph(
             com.irothink.sharegrowthmonitor.ui.company.list.CompanyListScreen(
                 onNavigateUp = { navController.navigateUp() }
             )
-            // create company screen
-            // create company screen and add company screen, update company, 
-            // delete company, company list screen
         }
     }
 }

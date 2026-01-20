@@ -3,16 +3,23 @@ package com.irothink.sharegrowthmonitor.domain.usecase
 import com.irothink.sharegrowthmonitor.domain.model.Holding
 import com.irothink.sharegrowthmonitor.domain.model.PortfolioSummary
 import com.irothink.sharegrowthmonitor.domain.model.TransactionType
+import com.irothink.sharegrowthmonitor.domain.repository.CompanyRepository
 import com.irothink.sharegrowthmonitor.domain.repository.PortfolioRepository
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
 class GetPortfolioSummaryUseCase @Inject constructor(
-    private val repository: PortfolioRepository
+    private val portfolioRepository: PortfolioRepository,
+    private val companyRepository: CompanyRepository
 ) {
     operator fun invoke(): Flow<PortfolioSummary> {
-        return repository.getAllTransactions().map { transactions ->
+        return combine(
+            portfolioRepository.getAllTransactions(),
+            companyRepository.getAllCompanies()
+        ) { transactions, companies ->
+            val companiesMap = companies.associateBy { it.symbol }
             val holdingsMap = mutableMapOf<String, CalculatedHolding>()
 
             var availableFunds = 0.0
@@ -63,18 +70,21 @@ class GetPortfolioSummaryUseCase @Inject constructor(
                 // Track last price as current price proxy if available (naive approach)
                 if (transaction.type == TransactionType.BUY || transaction.type == TransactionType.SELL) {
                      val current = holdingsMap[transaction.symbol]
-                     current?.currentPrice = transaction.pricePerShare
+                     current?.lastTransactionPrice = transaction.pricePerShare
                 }
             }
 
             val holdings = holdingsMap.values.filter { it.quantity > 0 }.map {
+                val dbPrice = companiesMap[it.symbol]?.currentPrice
+                val currentPrice = dbPrice ?: it.lastTransactionPrice
+                
                 Holding(
                     stockSymbol = it.symbol,
                     quantity = it.quantity,
                     averagePrice = it.averagePrice,
-                    currentPrice = it.currentPrice,
-                    totalValue = it.quantity * it.currentPrice,
-                    profitLoss = (it.quantity * it.currentPrice) - (it.quantity * it.averagePrice)
+                    currentPrice = currentPrice,
+                    totalValue = it.quantity * currentPrice,
+                    profitLoss = (it.quantity * currentPrice) - (it.quantity * it.averagePrice)
                 )
             }
 
@@ -95,7 +105,7 @@ class GetPortfolioSummaryUseCase @Inject constructor(
         val symbol: String,
         var quantity: Double = 0.0,
         var averagePrice: Double = 0.0,
-        var currentPrice: Double = 0.0,
+        var lastTransactionPrice: Double = 0.0,
         var investedAmount: Double = 0.0
     )
 }
