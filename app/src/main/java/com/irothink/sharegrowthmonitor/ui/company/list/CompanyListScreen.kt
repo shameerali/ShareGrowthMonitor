@@ -1,15 +1,12 @@
 package com.irothink.sharegrowthmonitor.ui.company.list
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardOptions
@@ -52,8 +49,10 @@ fun CompanyListScreen(
     viewModel: CompanyListViewModel = hiltViewModel()
 ) {
     val companies by viewModel.companies.collectAsState()
+
     var showAddDialog by remember { mutableStateOf(false) }
     var companyToEdit by remember { mutableStateOf<CompanyInfoEntity?>(null) }
+    var companyToDelete by remember { mutableStateOf<CompanyInfoEntity?>(null) }
 
     Scaffold(
         topBar = {
@@ -83,12 +82,13 @@ fun CompanyListScreen(
                 CompanyItem(
                     company = company,
                     onEdit = { companyToEdit = company },
-                    onDelete = { viewModel.deleteCompany(company) }
+                    onDelete = { companyToDelete = company }
                 )
             }
         }
     }
 
+    /* ---------------- Add Company Dialog ---------------- */
     if (showAddDialog) {
         CompanyDialog(
             title = "Add Company",
@@ -100,6 +100,7 @@ fun CompanyListScreen(
         )
     }
 
+    /* ---------------- Edit Company Dialog ---------------- */
     companyToEdit?.let { company ->
         CompanyDialog(
             title = "Edit Company",
@@ -114,7 +115,37 @@ fun CompanyListScreen(
             }
         )
     }
+
+    /* ---------------- Delete Confirmation Dialog ---------------- */
+    companyToDelete?.let { company ->
+        AlertDialog(
+            onDismissRequest = { companyToDelete = null },
+            title = { Text("Delete Company") },
+            text = {
+                Text("Are you sure you want to delete \"${company.name}\"?")
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        viewModel.deleteCompany(company)
+                        companyToDelete = null
+                    }
+                ) {
+                    Text("Yes")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { companyToDelete = null }) {
+                    Text("No")
+                }
+            }
+        )
+    }
 }
+
+/* ========================================================= */
+/* ===================== Company Item ====================== */
+/* ========================================================= */
 
 @Composable
 fun CompanyItem(
@@ -134,24 +165,51 @@ fun CompanyItem(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Column(modifier = Modifier.weight(1f)) {
-                Text(text = company.name, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-                Text(text = "Symbol: ${company.symbol}", style = MaterialTheme.typography.bodyMedium)
+                Text(
+                    text = company.name,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold
+                )
+                Text(
+                    text = "Symbol: ${company.symbol}",
+                    style = MaterialTheme.typography.bodyMedium
+                )
                 if (company.industry.isNotBlank()) {
-                    Text(text = company.industry, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(
+                        text = company.industry,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 }
-                Text(text = "Price: $${company.currentPrice}", style = MaterialTheme.typography.bodySmall)
+                Text(
+                    text = "Price: $${company.currentPrice}",
+                    style = MaterialTheme.typography.bodySmall
+                )
             }
+
             Row {
                 IconButton(onClick = onEdit) {
-                    Icon(Icons.Default.Edit, contentDescription = "Edit", tint = MaterialTheme.colorScheme.primary)
+                    Icon(
+                        Icons.Default.Edit,
+                        contentDescription = "Edit",
+                        tint = MaterialTheme.colorScheme.primary
+                    )
                 }
                 IconButton(onClick = onDelete) {
-                    Icon(Icons.Default.Delete, contentDescription = "Delete", tint = MaterialTheme.colorScheme.error)
+                    Icon(
+                        Icons.Default.Delete,
+                        contentDescription = "Delete",
+                        tint = MaterialTheme.colorScheme.error
+                    )
                 }
             }
         }
     }
 }
+
+/* ========================================================= */
+/* ===================== Add/Edit Dialog =================== */
+/* ========================================================= */
 
 @Composable
 fun CompanyDialog(
@@ -166,7 +224,9 @@ fun CompanyDialog(
     var name by remember { mutableStateOf(initialName) }
     var industry by remember { mutableStateOf(initialIndustry) }
     var symbol by remember { mutableStateOf(initialSymbol) }
-    var price by remember { mutableStateOf(if (initialPrice > 0) initialPrice.toString() else "") }
+    var price by remember {
+        mutableStateOf(if (initialPrice > 0) initialPrice.toString() else "")
+    }
     var isNameError by remember { mutableStateOf(false) }
 
     AlertDialog(
@@ -176,7 +236,7 @@ fun CompanyDialog(
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 OutlinedTextField(
                     value = name,
-                    onValueChange = { 
+                    onValueChange = {
                         name = it
                         isNameError = false
                     },
@@ -211,7 +271,12 @@ fun CompanyDialog(
                     if (name.isBlank()) {
                         isNameError = true
                     } else {
-                        onConfirm(name, industry, symbol, price.toDoubleOrNull() ?: 0.0)
+                        onConfirm(
+                            name,
+                            industry,
+                            symbol,
+                            price.toDoubleOrNull() ?: 0.0
+                        )
                     }
                 }
             ) {
