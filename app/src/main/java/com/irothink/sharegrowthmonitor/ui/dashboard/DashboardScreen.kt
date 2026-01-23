@@ -246,40 +246,26 @@ fun HoldingItem(holding: Holding) {
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
-        Row(
+        Column(
             modifier = Modifier
                 .padding(16.dp)
                 .fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
+            verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                // Placeholder Icon
-                Box(
-                    modifier = Modifier
-                        .size(40.dp)
-                        .clip(androidx.compose.foundation.shape.CircleShape)
-                        .background(MaterialTheme.colorScheme.primaryContainer),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(holding.stockSymbol.take(1), fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onPrimaryContainer)
-                }
-                Spacer(modifier = Modifier.width(12.dp))
-                Column {
-                    Text(holding.stockSymbol, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-                    Text(
-                        text = "${holding.quantity} shares • $${String.format("%.2f", holding.currentPrice)}",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            }
-            
-            Column(horizontalAlignment = Alignment.End) {
-                Text("$${String.format("%.2f", holding.totalValue)}", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+            // First Line: Name and Profit/Loss
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = holding.stockSymbol,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold
+                )
                 
-                val pnlPercentage = if (holding.averagePrice > 0 && holding.quantity > 0) {
-                    (holding.profitLoss / (holding.quantity * holding.averagePrice)) * 100
+                val pnlPercentage = if (holding.totalGrossInvested + holding.totalCharges > 0) {
+                    (holding.profitLoss / (holding.totalGrossInvested + holding.totalCharges)) * 100
                 } else 0.0
                 
                 val pnlColor = if (holding.profitLoss >= 0) Color(0xFF4CAF50) else Color(0xFFE53935)
@@ -287,8 +273,8 @@ fun HoldingItem(holding: Holding) {
                 
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
-                        text = "$pnlPrefix$${String.format("%.2f", holding.profitLoss)}",
-                        style = MaterialTheme.typography.bodySmall,
+                        text = "$pnlPrefix${String.format("%.2f", holding.profitLoss)}",
+                        style = MaterialTheme.typography.bodyMedium,
                         color = pnlColor,
                         fontWeight = FontWeight.Bold
                     )
@@ -301,6 +287,20 @@ fun HoldingItem(holding: Holding) {
                     )
                 }
             }
+            
+            // Second Line: Invested amount and avg price
+            Text(
+                text = "Invested : (${String.format("%.1f", holding.totalGrossInvested)} + ${String.format("%.0f", holding.totalCharges)})   ${String.format("%.2f", holding.averagePrice)} avg",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            
+            // Third Line: Quantity and current price
+            Text(
+                text = "Qty : ${holding.quantity.toInt()}   ${String.format("%.2f", holding.currentPrice)}",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
         }
     }
 }

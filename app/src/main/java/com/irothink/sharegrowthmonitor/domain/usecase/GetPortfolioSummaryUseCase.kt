@@ -38,7 +38,9 @@ class GetPortfolioSummaryUseCase @Inject constructor(
                             current.averagePrice = (totalCost + newCost) / totalQuantity
                         }
                         current.quantity += transaction.quantity
-                        current.investedAmount += newCost
+                        current.investedAmount += transaction.netAmount
+                        current.totalGross += transaction.grossAmount
+                        current.totalCharges += (transaction.taxAmount + transaction.brokerageFee)
                         
                         // Deduct from available funds
                         availableFunds -= transaction.netAmount
@@ -50,6 +52,15 @@ class GetPortfolioSummaryUseCase @Inject constructor(
                         // SELL logic
                         // Realized P/L calculation could happen here, but for simple holdings:
                         // Decrement quantity. Average price usually stays same (FIFO/Average Cost)
+                        
+                        // proportional reduction for simple tracking
+                        if (current.quantity > 0) {
+                            val ratio = transaction.quantity / current.quantity
+                            current.totalGross -= (current.totalGross * ratio)
+                            current.totalCharges -= (current.totalCharges * ratio)
+                            current.investedAmount -= (current.investedAmount * ratio)
+                        }
+
                         current.quantity -= transaction.quantity
                         // We assume selling reduces invested amount proportionally to avg price?
                         // Or we just track remaining quantity and avg price remains same until next buy
@@ -84,7 +95,9 @@ class GetPortfolioSummaryUseCase @Inject constructor(
                     averagePrice = it.averagePrice,
                     currentPrice = currentPrice,
                     totalValue = it.quantity * currentPrice,
-                    profitLoss = (it.quantity * currentPrice) - (it.quantity * it.averagePrice)
+                    profitLoss = (it.quantity * currentPrice) - it.investedAmount,
+                    totalGrossInvested = it.totalGross,
+                    totalCharges = it.totalCharges
                 )
             }
 
@@ -106,6 +119,8 @@ class GetPortfolioSummaryUseCase @Inject constructor(
         var quantity: Double = 0.0,
         var averagePrice: Double = 0.0,
         var lastTransactionPrice: Double = 0.0,
-        var investedAmount: Double = 0.0
+        var investedAmount: Double = 0.0,
+        var totalGross: Double = 0.0,
+        var totalCharges: Double = 0.0
     )
 }
