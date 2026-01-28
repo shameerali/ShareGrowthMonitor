@@ -4,6 +4,8 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.navArgument
+import androidx.navigation.NavType
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Button
@@ -34,10 +36,22 @@ fun ShareGrowthNavGraph(
         }
         composable(Screen.TransactionList.route) {
             TransactionListScreen(
-                onNavigateUp = { navController.navigateUp() }
+                onNavigateUp = { navController.navigateUp() },
+                onEditTransaction = { id -> 
+                    navController.navigate(Screen.AddTransaction.passId(id))
+                }
             )
         }
-        composable(Screen.AddTransaction.route) {
+        composable(
+            route = Screen.AddTransaction.routePattern,
+            arguments = listOf(
+                navArgument("transactionId") {
+                    type = NavType.StringType
+                    nullable = true
+                    defaultValue = null
+                }
+            )
+        ) {
             AddTransactionScreen(
                 onNavigateUp = { navController.navigateUp() }
             )

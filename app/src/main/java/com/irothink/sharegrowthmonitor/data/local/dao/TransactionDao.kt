@@ -17,6 +17,9 @@ interface TransactionDao {
     @Query("SELECT * FROM transactions WHERE symbol = :symbol ORDER BY date DESC")
     fun getTransactionsForStock(symbol: String): Flow<List<TransactionEntity>>
 
+    @Query("SELECT * FROM transactions WHERE id = :id")
+    suspend fun getTransactionById(id: String): TransactionEntity?
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertTransaction(transaction: TransactionEntity)
 

@@ -24,6 +24,10 @@ class PortfolioRepositoryImpl @Inject constructor(
         }
     }
 
+    override suspend fun getTransactionById(id: String): Transaction? {
+        return dao.getTransactionById(id)?.toDomain()
+    }
+
     override suspend fun insertTransaction(transaction: Transaction) {
         dao.insertTransaction(transaction.toEntity())
     }

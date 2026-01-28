@@ -1,5 +1,6 @@
 package com.irothink.sharegrowthmonitor.ui.budget
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -12,11 +13,14 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -27,6 +31,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -39,6 +44,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -137,8 +145,8 @@ fun BudgetScreen(
             title = "Add Funds",
             confirmButtonText = "Add",
             onDismiss = { showAddFundsDialog = false },
-            onConfirm = { amount ->
-                viewModel.addFunds(amount)
+            onConfirm = { amount, dateMillis ->
+                viewModel.addFunds(amount, dateMillis)
                 showAddFundsDialog = false
             }
         )
@@ -149,29 +157,61 @@ fun BudgetScreen(
             title = "Withdraw Funds",
             confirmButtonText = "Withdraw",
             onDismiss = { showWithdrawFundsDialog = false },
-            onConfirm = { amount ->
-                viewModel.withdrawFunds(amount)
+            onConfirm = { amount, dateMillis ->
+                viewModel.withdrawFunds(amount, dateMillis)
                 showWithdrawFundsDialog = false
             }
         )
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FundsDialog(
     title: String,
     confirmButtonText: String,
     onDismiss: () -> Unit,
-    onConfirm: (Double) -> Unit
+    onConfirm: (Double, Long) -> Unit
 ) {
     var amountText by remember { mutableStateOf("") }
     var isError by remember { mutableStateOf(false) }
+    var selectedDateMillis by remember { mutableStateOf(System.currentTimeMillis()) }
+    var showDatePicker by remember { mutableStateOf(false) }
+
+    val datePickerState = rememberDatePickerState(
+        initialSelectedDateMillis = selectedDateMillis
+    )
+
+    if (showDatePicker) {
+        DatePickerDialog(
+            onDismissRequest = { showDatePicker = false },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        datePickerState.selectedDateMillis?.let { millis ->
+                            selectedDateMillis = millis
+                        }
+                        showDatePicker = false
+                    }
+                ) {
+                    Text("OK")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDatePicker = false }) {
+                    Text("Cancel")
+                }
+            }
+        ) {
+            DatePicker(state = datePickerState)
+        }
+    }
 
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(title) },
         text = {
-            Column {
+            Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
                 OutlinedTextField(
                     value = amountText,
                     onValueChange = {
@@ -182,7 +222,23 @@ fun FundsDialog(
                     singleLine = true,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     isError = isError,
-                    supportingText = { if (isError) Text("Invalid amount") }
+                    supportingText = { if (isError) Text("Invalid amount") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                OutlinedTextField(
+                    value = SimpleDateFormat("MMM dd, yyyy", Locale.getDefault()).format(Date(selectedDateMillis)),
+                    onValueChange = {},
+                    readOnly = true,
+                    label = { Text("Date") },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { showDatePicker = true },
+                    trailingIcon = {
+                        IconButton(onClick = { showDatePicker = true }) {
+                            Icon(Icons.Default.DateRange, contentDescription = "Select Date")
+                        }
+                    }
                 )
             }
         },
@@ -191,7 +247,7 @@ fun FundsDialog(
                 onClick = {
                     val amount = amountText.toDoubleOrNull()
                     if (amount != null && amount > 0) {
-                        onConfirm(amount)
+                        onConfirm(amount, selectedDateMillis)
                     } else {
                         isError = true
                     }

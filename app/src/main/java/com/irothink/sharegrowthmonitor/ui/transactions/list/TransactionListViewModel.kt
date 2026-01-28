@@ -4,6 +4,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.irothink.sharegrowthmonitor.domain.model.Transaction
 import com.irothink.sharegrowthmonitor.domain.usecase.GetTransactionHistoryUseCase
+import com.irothink.sharegrowthmonitor.domain.usecase.DeleteTransactionUseCase
+import kotlinx.coroutines.launch
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -12,7 +14,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class TransactionListViewModel @Inject constructor(
-    getTransactionHistoryUseCase: GetTransactionHistoryUseCase
+    getTransactionHistoryUseCase: GetTransactionHistoryUseCase,
+    private val deleteTransactionUseCase: DeleteTransactionUseCase
 ) : ViewModel() {
 
     val transactions: StateFlow<List<Transaction>> = getTransactionHistoryUseCase()
@@ -21,4 +24,10 @@ class TransactionListViewModel @Inject constructor(
             started = SharingStarted.WhileSubscribed(5000),
             initialValue = emptyList()
         )
+
+    fun deleteTransaction(transaction: Transaction) {
+        viewModelScope.launch {
+            deleteTransactionUseCase(transaction)
+        }
+    }
 }

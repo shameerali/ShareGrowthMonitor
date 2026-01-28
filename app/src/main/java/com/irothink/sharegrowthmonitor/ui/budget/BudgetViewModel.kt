@@ -12,7 +12,9 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import java.time.LocalDateTime
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 import java.util.UUID
 import javax.inject.Inject
 
@@ -29,8 +31,9 @@ class BudgetViewModel @Inject constructor(
             initialValue = null
         )
 
-    fun addFunds(amount: Double) {
+    fun addFunds(amount: Double, dateMillis: Long) {
         viewModelScope.launch {
+            val dateString = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date(dateMillis))
             val transaction = Transaction(
                 id = UUID.randomUUID().toString(),
                 type = TransactionType.DEPOSIT,
@@ -42,17 +45,18 @@ class BudgetViewModel @Inject constructor(
                 taxAmount = 0.0,
                 grossAmount = amount,
                 netAmount = amount,
-                date = LocalDateTime.now().toString(),
+                date = dateString,
                 brokerageFee = 0.0,
                 notes = "Deposit",
-                createdAt = LocalDateTime.now().toString()
+                createdAt = System.currentTimeMillis().toString()
             )
             repository.insertTransaction(transaction)
         }
     }
 
-    fun withdrawFunds(amount: Double) {
+    fun withdrawFunds(amount: Double, dateMillis: Long) {
         viewModelScope.launch {
+            val dateString = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date(dateMillis))
             val transaction = Transaction(
                 id = UUID.randomUUID().toString(),
                 type = TransactionType.WITHDRAW,
@@ -64,10 +68,10 @@ class BudgetViewModel @Inject constructor(
                 taxAmount = 0.0,
                 grossAmount = amount,
                 netAmount = amount,
-                date = LocalDateTime.now().toString(),
+                date = dateString,
                 brokerageFee = 0.0,
                 notes = "Withdrawal",
-                createdAt = LocalDateTime.now().toString()
+                createdAt = System.currentTimeMillis().toString()
             )
             repository.insertTransaction(transaction)
         }

@@ -7,7 +7,10 @@ import com.irothink.sharegrowthmonitor.data.local.entity.CompanyInfoEntity
 import com.irothink.sharegrowthmonitor.domain.model.Transaction
 import com.irothink.sharegrowthmonitor.domain.model.TransactionType
 import com.irothink.sharegrowthmonitor.domain.usecase.AddTransactionUseCase
+import com.irothink.sharegrowthmonitor.domain.usecase.GetTransactionByIdUseCase
+import com.irothink.sharegrowthmonitor.domain.usecase.UpdateTransactionUseCase
 import com.irothink.sharegrowthmonitor.domain.usecase.company.GetCompaniesUseCase
+import androidx.lifecycle.SavedStateHandle
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -23,8 +26,13 @@ import javax.inject.Inject
 @HiltViewModel
 class AddTransactionViewModel @Inject constructor(
     private val addTransactionUseCase: AddTransactionUseCase,
-    getCompaniesUseCase: GetCompaniesUseCase
+    private val updateTransactionUseCase: UpdateTransactionUseCase,
+    private val getTransactionByIdUseCase: GetTransactionByIdUseCase,
+    getCompaniesUseCase: GetCompaniesUseCase,
+    savedStateHandle: SavedStateHandle
 ) : ViewModel() {
+
+    private val transactionId: String? = savedStateHandle["transactionId"]
 
     private val _uiState = MutableStateFlow(AddTransactionUiState())
     val uiState = _uiState.asStateFlow()
@@ -38,6 +46,41 @@ class AddTransactionViewModel @Inject constructor(
             started = SharingStarted.WhileSubscribed(5000),
             initialValue = emptyList()
         )
+
+    init {
+        transactionId?.let { id ->
+            viewModelScope.launch {
+                getTransactionByIdUseCase(id)?.let { transaction ->
+                    _uiState.value = _uiState.value.copy(
+                        symbol = transaction.symbol,
+                        companyName = transaction.mainCompanyName,
+                        quantity = transaction.quantity.toString(),
+                        price = transaction.pricePerShare.toString(),
+                        date = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault()).parse(transaction.date)?.time ?: System.currentTimeMillis(),
+                        type = transaction.type,
+                        brokerageFee = transaction.brokerageFee.toString(),
+                        taxAmount = transaction.taxAmount.toString(),
+                        notes = transaction.notes,
+                        selectedCompany = companies.value.find { it.symbol == transaction.symbol }
+                    )
+                    
+                    // If companies list wasn't loaded yet, we might need to wait or rely on the name/symbol from transaction
+                }
+            }
+        }
+        
+        // Ensure selectedCompany is updated when companies list loads (for editing)
+        viewModelScope.launch {
+            companies.collect { list ->
+                val state = _uiState.value
+                if (list.isNotEmpty() && state.selectedCompany == null && state.symbol.isNotEmpty()) {
+                    list.find { it.symbol == state.symbol }?.let { company ->
+                        _uiState.value = _uiState.value.copy(selectedCompany = company)
+                    }
+                }
+            }
+        }
+    }
 
     fun onEvent(event: AddTransactionEvent) {
         when (event) {
@@ -79,24 +122,28 @@ class AddTransactionViewModel @Inject constructor(
                 
                 val dateString = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault()).format(Date(state.date))
                 
-                addTransactionUseCase(
-                    Transaction(
-                        id = java.util.UUID.randomUUID().toString(),
-                        symbol = state.selectedCompany.symbol,
-                        mainCompanyName = state.selectedCompany.name,
-                        subCompanyName = "",
-                        date = dateString,
-                        quantity = quantityVal,
-                        pricePerShare = priceVal,
-                        taxAmount = taxAmountVal,
-                        grossAmount = grossAmount,
-                        netAmount = netAmount,
-                        type = state.type,
-                        brokerageFee = brokerageFeeVal,
-                        notes = state.notes,
-                        createdAt = System.currentTimeMillis().toString()
-                    )
+                val transaction = Transaction(
+                    id = transactionId ?: java.util.UUID.randomUUID().toString(),
+                    symbol = state.selectedCompany?.symbol ?: state.symbol,
+                    mainCompanyName = state.selectedCompany?.name ?: state.companyName,
+                    subCompanyName = "",
+                    date = dateString,
+                    quantity = quantityVal,
+                    pricePerShare = priceVal,
+                    taxAmount = taxAmountVal,
+                    grossAmount = grossAmount,
+                    netAmount = netAmount,
+                    type = state.type,
+                    brokerageFee = brokerageFeeVal,
+                    notes = state.notes,
+                    createdAt = System.currentTimeMillis().toString()
                 )
+
+                if (transactionId != null) {
+                    updateTransactionUseCase(transaction)
+                } else {
+                    addTransactionUseCase(transaction)
+                }
                 _navigationEvent.send(Unit)
             } catch (e: Exception) {
                 // Handle error
