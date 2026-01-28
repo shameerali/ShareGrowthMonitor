@@ -40,7 +40,8 @@ class GetProfitLossUseCase @Inject constructor(
                         calc.quantity += transaction.quantity
                         calc.avgCost = if (calc.quantity > 0) totalCost / calc.quantity else 0.0
                         calc.sharesBought += transaction.quantity
-                        calc.totalInvested += transaction.netAmount
+                        calc.totalCostBasis += transaction.netAmount // Track total money spent
+                        calc.currentInvestment += transaction.netAmount
                     }
                     
                     TransactionType.SELL -> {
@@ -57,7 +58,7 @@ class GetProfitLossUseCase @Inject constructor(
                         calc.realizedPL += (proceeds - costBasis)
                         calc.quantity -= transaction.quantity
                         calc.sharesSold += transaction.quantity
-                        calc.totalInvested -= costBasis
+                        calc.currentInvestment -= costBasis // Only reduce current investment
                     }
                     
                     else -> {} // Ignore DEPOSIT/WITHDRAW
@@ -81,10 +82,13 @@ class GetProfitLossUseCase @Inject constructor(
                 val sharesBought = calc?.sharesBought ?: 0.0
                 val sharesSold = calc?.sharesSold ?: 0.0
                 val sharesHeld = holding?.quantity ?: 0.0
-                val totalInvested = calc?.totalInvested ?: 0.0
                 
-                val totalPLPercentage = if (totalInvested > 0) {
-                    (totalPL / totalInvested) * 100
+                // Use total cost basis for percentage calculation, not current investment
+                val totalCostBasis = calc?.totalCostBasis ?: 0.0
+                val currentInvestment = calc?.currentInvestment ?: 0.0
+                
+                val totalPLPercentage = if (totalCostBasis > 0) {
+                    (totalPL / totalCostBasis) * 100
                 } else 0.0
                 
                 // Only include stocks that have had transactions
@@ -99,7 +103,7 @@ class GetProfitLossUseCase @Inject constructor(
                         sharesBought = sharesBought,
                         sharesSold = sharesSold,
                         sharesHeld = sharesHeld,
-                        totalInvested = totalInvested
+                        totalInvested = currentInvestment
                     )
                 } else null
             }.sortedByDescending { it.totalPL }
@@ -131,6 +135,7 @@ class GetProfitLossUseCase @Inject constructor(
         var realizedPL: Double = 0.0,
         var sharesBought: Double = 0.0,
         var sharesSold: Double = 0.0,
-        var totalInvested: Double = 0.0
+        var totalCostBasis: Double = 0.0,      // Total amount spent on buys
+        var currentInvestment: Double = 0.0    // Current amount still invested
     )
 }
