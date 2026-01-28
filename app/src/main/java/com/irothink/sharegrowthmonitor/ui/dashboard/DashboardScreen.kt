@@ -24,6 +24,7 @@ import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.ShoppingCart
+import androidx.compose.material.icons.filled.TrendingUp
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.foundation.Image
 import androidx.compose.material3.Card
@@ -55,6 +56,7 @@ fun DashboardScreen(
     onNavigateToProfile: () -> Unit,
     onNavigateToBudget: () -> Unit,
     onNavigateToCompanies: () -> Unit,
+    onNavigateToProfitLoss: () -> Unit,
     viewModel: DashboardViewModel = hiltViewModel()
 ) {
 
@@ -117,6 +119,8 @@ fun DashboardScreen(
                 // Quick Actions
                 Text("Quick Actions", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
                 Spacer(modifier = Modifier.height(8.dp))
+                
+                // First Row
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween
@@ -127,14 +131,28 @@ fun DashboardScreen(
                         onClick = onNavigateToTransactionList
                     )
                      QuickActionButton(
-                        icon = Icons.Default.ShoppingCart, // Placeholder for Money/Budget
+                        icon = Icons.Default.ShoppingCart,
                         label = "Budget",
                         onClick = onNavigateToBudget
                     )
                      QuickActionButton(
-                        icon = Icons.Default.Info, // Placeholder for Company
+                        icon = Icons.Default.Info,
                         label = "Companies",
                         onClick = onNavigateToCompanies
+                    )
+                }
+                
+                Spacer(modifier = Modifier.height(8.dp))
+                
+                // Second Row
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Start
+                ) {
+                    QuickActionButton(
+                        icon = Icons.Default.TrendingUp,
+                        label = "P&L",
+                        onClick = onNavigateToProfitLoss
                     )
                 }
 
