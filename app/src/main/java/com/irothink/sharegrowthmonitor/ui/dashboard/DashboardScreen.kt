@@ -18,6 +18,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccountBalance
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.List
@@ -57,6 +58,7 @@ fun DashboardScreen(
     onNavigateToBudget: () -> Unit,
     onNavigateToCompanies: () -> Unit,
     onNavigateToProfitLoss: () -> Unit,
+    onNavigateToFunds: () -> Unit,
     viewModel: DashboardViewModel = hiltViewModel()
 ) {
 
@@ -147,12 +149,17 @@ fun DashboardScreen(
                 // Second Row
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.Start
+                    horizontalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
                     QuickActionButton(
                         icon = Icons.Default.TrendingUp,
                         label = "P&L",
                         onClick = onNavigateToProfitLoss
+                    )
+                    QuickActionButton(
+                        icon = Icons.Default.AccountBalance,
+                        label = "Funds",
+                        onClick = onNavigateToFunds
                     )
                 }
 

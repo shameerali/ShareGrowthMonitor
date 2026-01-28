@@ -32,7 +32,8 @@ fun ShareGrowthNavGraph(
                 onNavigateToProfile = { navController.navigate(Screen.Profile.route) },
                 onNavigateToBudget = { navController.navigate(Screen.Budget.route) },
                 onNavigateToCompanies = { navController.navigate(Screen.CompanyList.route) },
-                onNavigateToProfitLoss = { navController.navigate(Screen.ProfitLoss.route) }
+                onNavigateToProfitLoss = { navController.navigate(Screen.ProfitLoss.route) },
+                onNavigateToFunds = { navController.navigate(Screen.Funds.route) }
             )
         }
         composable(Screen.TransactionList.route) {
@@ -74,6 +75,11 @@ fun ShareGrowthNavGraph(
         }
         composable(Screen.ProfitLoss.route) {
             com.irothink.sharegrowthmonitor.ui.profitloss.ProfitLossScreen(
+                onNavigateUp = { navController.navigateUp() }
+            )
+        }
+        composable(Screen.Funds.route) {
+            com.irothink.sharegrowthmonitor.ui.funds.FundsScreen(
                 onNavigateUp = { navController.navigateUp() }
             )
         }
