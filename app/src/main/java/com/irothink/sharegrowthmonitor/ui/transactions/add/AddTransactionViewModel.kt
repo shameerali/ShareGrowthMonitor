@@ -118,7 +118,11 @@ class AddTransactionViewModel @Inject constructor(
                 val taxAmountVal = state.taxAmount.toDoubleOrNull() ?: 0.0
                 
                 val grossAmount = quantityVal * priceVal
-                val netAmount = grossAmount + brokerageFeeVal + taxAmountVal
+                val netAmount = when (state.type) {
+                    TransactionType.BUY -> grossAmount + brokerageFeeVal + taxAmountVal
+                    TransactionType.SELL -> grossAmount - brokerageFeeVal - taxAmountVal
+                    else -> grossAmount // For DEPOSIT/WITHDRAW (shouldn't happen here)
+                }
                 
                 val dateString = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault()).format(Date(state.date))
                 

@@ -71,6 +71,7 @@ class GetPortfolioSummaryUseCaseTest {
 class FakePortfolioRepository(private val transactions: List<Transaction>) : PortfolioRepository {
     override fun getAllTransactions(): Flow<List<Transaction>> = flowOf(transactions)
     override fun getTransactionsForStock(symbol: String): Flow<List<Transaction>> = flowOf(transactions.filter { it.symbol == symbol })
+    override suspend fun getTransactionById(id: String): Transaction? = transactions.find { it.id == id }
     override suspend fun insertTransaction(transaction: Transaction) {}
     override suspend fun updateTransaction(transaction: Transaction) {}
     override suspend fun deleteTransaction(transaction: Transaction) {}
