@@ -24,6 +24,7 @@ import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Science
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material.icons.filled.TrendingUp
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -59,8 +60,17 @@ fun DashboardScreen(
     onNavigateToCompanies: () -> Unit,
     onNavigateToProfitLoss: () -> Unit,
     onNavigateToFunds: () -> Unit,
+    onNavigateToTrial: () -> Unit,
     viewModel: DashboardViewModel = hiltViewModel()
 ) {
+
+    // Implement Trial option : 
+    // 1. Add Button in Quick action in Dashboard, 
+    // 2. Inside TrialTrading Screen : 
+    // 2.1 like dashboard Screen
+    // 2.2 include Trial holdings list like current holdings
+    // 2.3 add AddTransaction : this transaction save to new table 
+    // 2.4 this transaction dont effect budget and fund
 
     val summary by viewModel.portfolioSummary.collectAsState()
 
@@ -161,6 +171,13 @@ fun DashboardScreen(
                         label = "Funds",
                         onClick = onNavigateToFunds
                     )
+                    QuickActionButton(
+                        icon = Icons.Default.Science,
+                        label = "Trial Trading",
+                        onClick = onNavigateToTrial,
+                        backgroundColor = Color(0xFFFFF3E0), // Light Orange
+                        contentColor = Color(0xFFE65100) // Dark Orange
+                    )
                 }
 
                 Spacer(modifier = Modifier.height(24.dp))
@@ -184,16 +201,22 @@ fun DashboardScreen(
 }
 
 @Composable
-fun QuickActionButton(icon: ImageVector, label: String, onClick: () -> Unit) {
+fun QuickActionButton(
+    icon: ImageVector, 
+    label: String, 
+    onClick: () -> Unit,
+    backgroundColor: Color = MaterialTheme.colorScheme.surfaceVariant,
+    contentColor: Color = MaterialTheme.colorScheme.primary
+) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Card(
             onClick = onClick,
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+            colors = CardDefaults.cardColors(containerColor = backgroundColor),
             shape = androidx.compose.foundation.shape.RoundedCornerShape(12.dp),
              modifier = Modifier.size(60.dp)
         ) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Icon(icon, contentDescription = label, tint = MaterialTheme.colorScheme.primary)
+                Icon(icon, contentDescription = label, tint = contentColor)
             }
         }
         Spacer(modifier = Modifier.height(4.dp))

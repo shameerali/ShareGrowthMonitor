@@ -62,4 +62,18 @@ object AppModule {
     fun provideBudgetDao(database: ShareGrowthDatabase): com.irothink.sharegrowthmonitor.data.local.dao.BudgetDao {
         return database.budgetDao()
     }
+
+    @Provides
+    @Singleton
+    fun provideTrialTransactionDao(database: ShareGrowthDatabase): com.irothink.sharegrowthmonitor.data.local.dao.TrialTransactionDao {
+        return database.trialTransactionDao()
+    }
+
+    @Provides
+    @Singleton
+    fun provideTrialPortfolioRepository(
+        dao: com.irothink.sharegrowthmonitor.data.local.dao.TrialTransactionDao
+    ): com.irothink.sharegrowthmonitor.domain.repository.TrialPortfolioRepository {
+        return com.irothink.sharegrowthmonitor.data.repository.TrialPortfolioRepositoryImpl(dao)
+    }
 }

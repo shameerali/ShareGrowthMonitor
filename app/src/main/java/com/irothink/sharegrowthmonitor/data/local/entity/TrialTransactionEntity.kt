@@ -1,0 +1,23 @@
+package com.irothink.sharegrowthmonitor.data.local.entity
+
+import androidx.room.Entity
+import androidx.room.PrimaryKey
+
+@Entity(tableName = "trial_transactions")
+data class TrialTransactionEntity(
+    @PrimaryKey val id: String,
+    val type: String, // "BUY" or "SELL"
+    val mainCompanyName: String,
+    val subCompanyName: String,
+    val symbol: String,
+    val quantity: Double,
+    val pricePerShare: Double,
+    val taxAmount: Double,
+    val grossAmount: Double,
+    val netAmount: Double,
+    val date: String, // YYYY-MM-DD
+    val brokerageFee: Double,
+    val notes: String,
+    val createdAt: String, // ISO 8601
+
+)
