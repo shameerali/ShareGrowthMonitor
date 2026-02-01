@@ -87,11 +87,17 @@ fun ShareGrowthNavGraph(
         composable(Screen.TrialDashboard.route) {
             com.irothink.sharegrowthmonitor.ui.trial.TrialDashboardScreen(
                 onNavigateUp = { navController.navigateUp() },
-                onNavigateToAddForTrial = { navController.navigate(Screen.TrialAddTransaction.route) }
+                onNavigateToAddForTrial = { navController.navigate(Screen.TrialAddTransaction.route) },
+                onNavigateToHistory = { navController.navigate(Screen.TrialHistory.route) }
             )
         }
         composable(Screen.TrialAddTransaction.route) {
             com.irothink.sharegrowthmonitor.ui.trial.TrialAddTransactionScreen(
+                onNavigateUp = { navController.navigateUp() }
+            )
+        }
+        composable(Screen.TrialHistory.route) {
+            com.irothink.sharegrowthmonitor.ui.trial.TrialTransactionHistoryScreen(
                 onNavigateUp = { navController.navigateUp() }
             )
         }

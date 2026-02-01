@@ -11,12 +11,14 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.List
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -45,6 +47,7 @@ import com.irothink.sharegrowthmonitor.domain.model.PortfolioSummary
 fun TrialDashboardScreen(
     onNavigateUp: () -> Unit,
     onNavigateToAddForTrial: () -> Unit,
+    onNavigateToHistory: () -> Unit,
     viewModel: TrialDashboardViewModel = hiltViewModel()
 ) {
     val portfolioSummary by viewModel.portfolioSummary.collectAsState()
@@ -96,6 +99,27 @@ fun TrialDashboardScreen(
                 // Summary Card
                 item {
                     TrialPortfolioSummaryCard(summary)
+                }
+
+                // Quick Actions
+                item {
+                    Text(
+                        text = "Quick Actions",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.SemiBold,
+                        color = Color(0xFFE65100)
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.Start
+                    ) {
+                        TrialQuickActionButton(
+                            icon = Icons.Default.List,
+                            label = "History",
+                            onClick = onNavigateToHistory
+                        )
+                    }
                 }
 
                 item {
@@ -273,14 +297,14 @@ fun TrialHoldingItem(holding: Holding) {
             
             Spacer(modifier = Modifier.height(12.dp))
             
-            // Second Row: Quantity & Average Price | Current Price
+            // Second Row: Quantity & Average Price | Net Amount
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Column {
                     Text(
-                        text = "Quantity & Avg. Price",
+                        text = "Qty & Avg. Price",
                         style = MaterialTheme.typography.labelSmall,
                         color = Color.Gray
                     )
@@ -293,6 +317,27 @@ fun TrialHoldingItem(holding: Holding) {
                 
                 Column(horizontalAlignment = Alignment.End) {
                     Text(
+                        text = "Net Amount",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = Color.Gray
+                    )
+                    Text(
+                        text = "$${String.format("%.2f", holding.netAmountInvested)}",
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // Third Row: Current Price | Profit/Loss
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Column {
+                    Text(
                         text = "Current Price",
                         style = MaterialTheme.typography.labelSmall,
                         color = Color.Gray
@@ -303,6 +348,8 @@ fun TrialHoldingItem(holding: Holding) {
                         fontWeight = FontWeight.Medium
                     )
                 }
+                
+                // P&L info is handled in the next block
             }
 
             Spacer(modifier = Modifier.height(12.dp))
@@ -350,5 +397,30 @@ fun TrialHoldingItem(holding: Holding) {
                 }
             }
         }
+    }
+}
+@Composable
+fun TrialQuickActionButton(
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    label: String,
+    onClick: () -> Unit
+) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Card(
+            onClick = onClick,
+            colors = CardDefaults.cardColors(containerColor = Color(0xFFFFE0B2)),
+            shape = androidx.compose.foundation.shape.RoundedCornerShape(12.dp),
+            modifier = Modifier.size(60.dp)
+        ) {
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Icon(icon, contentDescription = label, tint = Color(0xFFE65100))
+            }
+        }
+        Spacer(modifier = Modifier.height(4.dp))
+        Text(
+            text = label, 
+            style = MaterialTheme.typography.labelMedium,
+            color = Color(0xFFE65100)
+        )
     }
 }

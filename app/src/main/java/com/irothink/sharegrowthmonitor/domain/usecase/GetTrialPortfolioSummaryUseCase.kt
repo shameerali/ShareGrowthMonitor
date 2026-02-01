@@ -89,6 +89,7 @@ class GetTrialPortfolioSummaryUseCase @Inject constructor(
                     totalValue = it.quantity * currentPrice,
                     profitLoss = pl,
                     profitLossPercentage = plPercentage,
+                    netAmountInvested = it.investedAmount,
                     totalGrossInvested = it.totalGross,
                     totalCharges = 0.0 // Simplified for trial mode
                 )

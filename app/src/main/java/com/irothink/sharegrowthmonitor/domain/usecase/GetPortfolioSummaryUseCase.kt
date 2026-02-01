@@ -99,6 +99,7 @@ class GetPortfolioSummaryUseCase @Inject constructor(
                     totalValue = it.quantity * currentPrice,
                     profitLoss = pl,
                     profitLossPercentage = plPercentage,
+                    netAmountInvested = it.investedAmount,
                     totalGrossInvested = it.totalGross,
                     totalCharges = it.totalCharges
                 )

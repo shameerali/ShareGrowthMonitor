@@ -16,6 +16,7 @@ data class Holding(
     val totalValue: Double,
     val profitLoss: Double,
     val profitLossPercentage: Double,
+    val netAmountInvested: Double,
     val totalGrossInvested: Double,
     val totalCharges: Double
 )
