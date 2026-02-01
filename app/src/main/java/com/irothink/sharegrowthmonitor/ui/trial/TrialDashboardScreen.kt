@@ -245,6 +245,7 @@ fun TrialHoldingItem(holding: Holding) {
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
+            // First Row: Symbol and Total Value
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -252,39 +253,101 @@ fun TrialHoldingItem(holding: Holding) {
             ) {
                 Text(
                     text = holding.stockSymbol,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFFE65100)
                 )
-                Text(
-                    text = "$${String.format("%.2f", holding.totalValue)}",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold
-                )
+                Column(horizontalAlignment = Alignment.End) {
+                    Text(
+                        text = "Value",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = Color.Gray
+                    )
+                    Text(
+                        text = "$${String.format("%.2f", holding.totalValue)}",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
             }
             
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(12.dp))
             
+            // Second Row: Quantity & Average Price | Current Price
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Column {
                     Text(
+                        text = "Quantity & Avg. Price",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = Color.Gray
+                    )
+                    Text(
                         text = "${String.format("%.2f", holding.quantity)} @ $${String.format("%.2f", holding.averagePrice)}",
                         style = MaterialTheme.typography.bodyMedium,
-                        color = Color.Gray
+                        fontWeight = FontWeight.Medium
                     )
                 }
                 
-                val plColor = if (holding.profitLoss >= 0) Color(0xFF2E7D32) else Color(0xFFC62828)
-                val prefix = if (holding.profitLoss >= 0) "+" else ""
+                Column(horizontalAlignment = Alignment.End) {
+                    Text(
+                        text = "Current Price",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = Color.Gray
+                    )
+                    Text(
+                        text = "$${String.format("%.2f", holding.currentPrice)}",
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.Medium
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+            
+            // Divider
+            Box(modifier = Modifier.fillMaxWidth().height(1.dp).background(Color.LightGray.copy(alpha = 0.3f)))
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // Third Row: P&L Amount | P&L Percentage
+            val plColor = if (holding.profitLoss >= 0) Color(0xFF2E7D32) else Color(0xFFC62828)
+            val prefix = if (holding.profitLoss >= 0) "+" else ""
+            
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column {
+                    Text(
+                        text = "Total P&L",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = Color.Gray
+                    )
+                    Text(
+                        text = "$prefix$${String.format("%.2f", holding.profitLoss)}",
+                        style = MaterialTheme.typography.bodyLarge,
+                        fontWeight = FontWeight.Bold,
+                        color = plColor
+                    )
+                }
                 
-                Text(
-                    text = "$prefix$${String.format("%.2f", holding.profitLoss)}",
-                    style = MaterialTheme.typography.bodyMedium,
-                    fontWeight = FontWeight.SemiBold,
-                    color = plColor
-                )
+                Card(
+                    colors = CardDefaults.cardColors(
+                        containerColor = plColor.copy(alpha = 0.1f)
+                    ),
+                    shape = androidx.compose.foundation.shape.RoundedCornerShape(8.dp)
+                ) {
+                    Text(
+                        text = "$prefix${String.format("%.2f", holding.profitLossPercentage)}%",
+                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                        style = MaterialTheme.typography.labelLarge,
+                        fontWeight = FontWeight.Bold,
+                        color = plColor
+                    )
+                }
             }
         }
     }

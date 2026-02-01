@@ -78,6 +78,8 @@ class GetTrialPortfolioSummaryUseCase @Inject constructor(
             val holdings = holdingsMap.values.filter { it.quantity > 0 }.map {
                 val dbPrice = companiesMap[it.symbol]?.currentPrice
                 val currentPrice = dbPrice ?: it.lastTransactionPrice
+                val pl = (it.quantity * currentPrice) - it.investedAmount
+                val plPercentage = if (it.investedAmount != 0.0) (pl / it.investedAmount) * 100 else 0.0
                 
                 Holding(
                     stockSymbol = it.symbol,
@@ -85,7 +87,8 @@ class GetTrialPortfolioSummaryUseCase @Inject constructor(
                     averagePrice = it.averagePrice,
                     currentPrice = currentPrice,
                     totalValue = it.quantity * currentPrice,
-                    profitLoss = (it.quantity * currentPrice) - it.investedAmount,
+                    profitLoss = pl,
+                    profitLossPercentage = plPercentage,
                     totalGrossInvested = it.totalGross,
                     totalCharges = 0.0 // Simplified for trial mode
                 )

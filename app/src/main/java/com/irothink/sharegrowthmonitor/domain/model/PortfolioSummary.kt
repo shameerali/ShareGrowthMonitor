@@ -15,6 +15,7 @@ data class Holding(
     val currentPrice: Double, // Placeholder for now
     val totalValue: Double,
     val profitLoss: Double,
+    val profitLossPercentage: Double,
     val totalGrossInvested: Double,
     val totalCharges: Double
 )
