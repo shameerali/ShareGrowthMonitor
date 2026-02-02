@@ -15,7 +15,7 @@ import com.irothink.sharegrowthmonitor.data.local.entity.TrialTransactionEntity
 
 @Database(
     entities = [TransactionEntity::class, CompanyInfoEntity::class, BudgetEntity::class, TrialTransactionEntity::class],
-    version = 6,
+    version = 7,
     exportSchema = false
 )
 @TypeConverters(Converters::class)

@@ -89,11 +89,12 @@ fun DashboardScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .padding(16.dp)
         ) {
-            // Header
+            // Fixed Header
             Row(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -111,7 +112,7 @@ fun DashboardScreen(
                 }
                 IconButton(onClick = onNavigateToProfile) {
                     Image(
-                        imageVector = Icons.Default.Person, // Using default icon as placeholder
+                        imageVector = Icons.Default.Person,
                         contentDescription = "Profile",
                         modifier = Modifier
                             .size(40.dp)
@@ -122,75 +123,86 @@ fun DashboardScreen(
                 }
             }
             
-            Spacer(modifier = Modifier.height(24.dp))
+            // Scrollable Content
+            summary?.let { summaryData ->
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 80.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    item {
+                        PortfolioSummaryCard(summaryData)
+                    }
+                    
+                    item {
+                        Column {
+                            Text("Quick Actions", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+                            Spacer(modifier = Modifier.height(8.dp))
+                            
+                            // First Row
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                QuickActionButton(
+                                    icon = Icons.Default.List,
+                                    label = "History",
+                                    onClick = onNavigateToTransactionList
+                                )
+                                QuickActionButton(
+                                    icon = Icons.Default.ShoppingCart,
+                                    label = "Budget",
+                                    onClick = onNavigateToBudget
+                                )
+                                QuickActionButton(
+                                    icon = Icons.Default.Info,
+                                    label = "Companies",
+                                    onClick = onNavigateToCompanies
+                                )
+                            }
+                            
+                            Spacer(modifier = Modifier.height(16.dp))
+                            
+                            // Second Row
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(16.dp)
+                            ) {
+                                QuickActionButton(
+                                    icon = Icons.Default.TrendingUp,
+                                    label = "P&L",
+                                    onClick = onNavigateToProfitLoss
+                                )
+                                QuickActionButton(
+                                    icon = Icons.Default.AccountBalance,
+                                    label = "Funds",
+                                    onClick = onNavigateToFunds
+                                )
+                                QuickActionButton(
+                                    icon = Icons.Default.Science,
+                                    label = "Trial Trading",
+                                    onClick = onNavigateToTrial,
+                                    backgroundColor = Color(0xFFFFF3E0),
+                                    contentColor = Color(0xFFE65100)
+                                )
+                            }
+                        }
+                    }
 
-            summary?.let {
-                PortfolioSummaryCard(it)
-                Spacer(modifier = Modifier.height(24.dp))
-                
-                // Quick Actions
-                Text("Quick Actions", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
-                Spacer(modifier = Modifier.height(8.dp))
-                
-                // First Row
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    QuickActionButton(
-                        icon = Icons.Default.List,
-                        label = "History",
-                        onClick = onNavigateToTransactionList
-                    )
-                     QuickActionButton(
-                        icon = Icons.Default.ShoppingCart,
-                        label = "Budget",
-                        onClick = onNavigateToBudget
-                    )
-                     QuickActionButton(
-                        icon = Icons.Default.Info,
-                        label = "Companies",
-                        onClick = onNavigateToCompanies
-                    )
-                }
-                
-                Spacer(modifier = Modifier.height(8.dp))
-                
-                // Second Row
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(16.dp)
-                ) {
-                    QuickActionButton(
-                        icon = Icons.Default.TrendingUp,
-                        label = "P&L",
-                        onClick = onNavigateToProfitLoss
-                    )
-                    QuickActionButton(
-                        icon = Icons.Default.AccountBalance,
-                        label = "Funds",
-                        onClick = onNavigateToFunds
-                    )
-                    QuickActionButton(
-                        icon = Icons.Default.Science,
-                        label = "Trial Trading",
-                        onClick = onNavigateToTrial,
-                        backgroundColor = Color(0xFFFFF3E0), // Light Orange
-                        contentColor = Color(0xFFE65100) // Dark Orange
-                    )
-                }
+                    item {
+                        Text(text = "Current Holdings", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+                    }
 
-                Spacer(modifier = Modifier.height(24.dp))
-                
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(text = "Current Holdings", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+                    if (summaryData.holdings.isEmpty()) {
+                        item {
+                            Text("No current holdings.", modifier = Modifier.padding(top = 8.dp), color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
+                    } else {
+                        items(summaryData.holdings) { holding ->
+                            HoldingItem(holding)
+                        }
+                    }
                 }
-                Spacer(modifier = Modifier.height(8.dp))
-                HoldingsList(it.holdings)
             } ?: run {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     Text("Loading portfolio...")
@@ -265,23 +277,6 @@ fun PortfolioSummaryCard(summary: PortfolioSummary) {
                         )
                     }
                 }
-            }
-        }
-    }
-}
-
-@Composable
-fun HoldingsList(holdings: List<Holding>) {
-    LazyColumn(
-        contentPadding = PaddingValues(bottom = 80.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
-    ) {
-        items(holdings) { holding ->
-            HoldingItem(holding)
-        }
-        if (holdings.isEmpty()) {
-            item {
-                Text("No current holdings.", modifier = Modifier.padding(top = 16.dp), color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
     }
